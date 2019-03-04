@@ -5,6 +5,8 @@ const express = require("express"),
   request = require("request"),
   fs = require("fs"),
   sharp = require("sharp");
+const swaggerUi = require("swagger-ui-express"),
+  swaggerDocument = require("./swagger.json");
 
 const app = express();
 const isProduction = app.get("env") === "production";
@@ -13,6 +15,9 @@ const description = "Json Patcher and Image Thumbnail Generation Service";
 //------------------------------------------------------------
 
 // ------------- Middlewares -------------------
+// Swagger API Documentation
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// app.use("/api/v1", app);
 //Parse Request body with json payload
 app.use(express.json());
 //Parse request body with url-encoded payload
@@ -52,8 +57,8 @@ app.post("/login", async (req, res) => {
   return res.status(200).send(JSON.stringify(token));
 });
 
-//POST: /patch
-app.post("/patch", auth, (req, res) => {
+//POST: /json-patch
+app.post("/json-patch", (req, res) => {
   var doc = req.body.doc;
   var patch = req.body.patch;
   if (!(doc && patch)) {
@@ -63,8 +68,8 @@ app.post("/patch", auth, (req, res) => {
   res.status(200).send(patched);
 });
 
-//GET: /thumbnail
-app.get("/thumbnail", (req, res) => {
+//GET: /image-thumbnail
+app.get("/image-thumbnail", (req, res) => {
   let imageUrl = req.query["imageUrl"];
 
   var download = (uri, filename, callback) => {
@@ -78,41 +83,38 @@ app.get("/thumbnail", (req, res) => {
       let extension = resp.headers["content-type"].split("/")[1];
       let fullName = filename + "." + extension;
       let stream = fs.createWriteStream(fullName);
-      let prefix = `data:${mimeType};base64,`;
-      // request(uri)
-      //   .pipe(stream)
-      //   .on("close", () => {
-      //     request(uri, (err, data, bod) => {
-      //       let prefix = `data:${mimeType};base64,`;
-      //       sharp(fullName)
-      //         .resize(50, 50)
-      //         .toBuffer((err, buffer, info) => {
-      //           console.log(err);
-      //           console.log(info);
-      //           console.log(buffer);
-      //           callback(buffer, mimeType);
-      //         })
-      //         .end();
-      //       // console.log(URL.createObjectURL(escape(data.body)));
-      //     });
-      //   });
-      request.get(uri, (err, data, body) => {
-        // let stream = new ReadableStream(data);
-        // console.log(new Buffer(escape(data.body)).toString("base64"));
-        // sharp(new Buffer(escape(body), "base64").toString("base64"))
-        //   .resize(50, 50)
-        //   .toBuffer((err, buffer, info) => {
-        //     console.log(err);
-        //     console.log(info);
-        //     console.log(buffer);
-        //     callback(buffer, mimeType);
-        //   })
-        //   .end();
-        callback(
-          new Buffer(escape(body), "base64").toString("base64"),
-          mimeType
-        );
-      });
+      // let prefix = `data:${mimeType};base64,`;
+      request(uri)
+        .pipe(stream)
+        .on("close", () => {
+          request(uri, (err, data, bod) => {
+            let prefix = `data:${mimeType};base64,`;
+            sharp(fullName)
+              .resize(50, 50)
+              .toBuffer((err, buffer, info) => {
+                callback(buffer, mimeType);
+              })
+              .end();
+            // console.log(URL.createObjectURL(escape(data.body)));
+          });
+        });
+      // request.get(uri, (err, data, body) => {
+      //   // let stream = new ReadableStream(data);
+      //   // console.log(new Buffer(escape(data.body)).toString("base64"));
+      //   // sharp(new Buffer(escape(body), "base64").toString("base64"))
+      //   //   .resize(50, 50)
+      //   //   .toBuffer((err, buffer, info) => {
+      //   //     console.log(err);
+      //   //     console.log(info);
+      //   //     console.log(buffer);
+      //   //     callback(buffer, mimeType);
+      //   //   })
+      //   //   .end();
+      //   callback(
+      //     new Buffer(escape(body), "base64").toString("base64"),
+      //     mimeType
+      //   );
+      // });
     });
   };
 

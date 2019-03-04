@@ -1,0 +1,110 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Hackerbay Nodejs backend",
+    "description": "A microservice for json patch and image thumbanail generation",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "host": "localhost:3000",
+  "basePath": "",
+  "tags": [
+    {
+      "name": "Authorization",
+      "description": "Json web token generation"
+    },
+    {
+      "name": "Json Patch",
+      "description": "Json patch"
+    },
+    {
+      "name": "Image Thumbnail",
+      "description": "Image thumnail generation"
+    }
+  ],
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/login": {
+      "post": {
+        "tags": ["Authorization"],
+        "summary": "User Authentication",
+        "responses": {
+          "200": {
+            "description": "User authenticated"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "credentials",
+          "in": "body",
+          "required": true,
+          "description": "User login credentials",
+          "schema": {
+            "$ref": "#/definitions/Login"
+          }
+        }
+      ]
+    },
+    "/json-patch": {
+      "post": {
+        "tags": ["Json Patch"],
+        "description": "Patch a json object",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "json object containing doc and patch to be applied",
+            "type": "object"
+          }
+        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Json patched"
+          }
+        }
+      }
+    },
+    "/image-thumbnail": {
+      "parameters": [
+        {
+          "name": "imageUrl",
+          "in": "query",
+          "required": true,
+          "description": "public uri for the image",
+          "type": "string"
+        }
+      ],
+      "get": {
+        "tags": ["Image Thumbnail"],
+        "summary": "Creates a specific-sized thumnail of an image",
+        "responses": {
+          "200": {
+            "description": "Thumbnail generated"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Login": {
+      "required": ["username", "password"],
+      "properties": {
+        "username": {
+          "type": "string",
+          "uniqueItems": true
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -3,8 +3,9 @@ const secret = "hackerbay-AppSecret";
 
 // Authentication Middleware
 auth = function(req, res, next) {
-  const token = req.header("Authorization").replace(/[Bb]earer /, "");
+  const token = req.header("Authorization");
   if (!token) return res.status(401).send("Access denied. No token provided.");
+  token = token.replace(/[Bb]earer /, "");
   try {
     const decoded = jwt.verify(token, secret);
     req.user = decoded;
